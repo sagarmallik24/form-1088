@@ -65,6 +65,7 @@ def execute():
             return jsonify(success_json)
 
         return jsonify({"error": "Invalid endpoint!"})
+    
     elif request.method == "POST":
         incoming_data = request.data.decode('utf-8')
         decoded_string = unquote(incoming_data, encoding='utf-8')
@@ -188,7 +189,6 @@ def validate_phone_code(phone_number, check_phone_code, lang_type):
     if phone_number and check_phone_code:
         filtered_data = [(item[2], item[3]) for item in sheet_data][1:]
         data = list(reversed(filtered_data))
-        print("DATA =>", data)
 
         index = -1
         for i, (ph, _) in enumerate(data):
@@ -196,7 +196,7 @@ def validate_phone_code(phone_number, check_phone_code, lang_type):
             print(int(phone_number[1:]))
             if int(ph) == int(phone_number[1:]):
                 index = i
-                print("MATCHED")
+                print("----------------- MATCHED THE CODE -------------- ")
                 break
 
 
@@ -309,7 +309,6 @@ def find_group_details_sutra(response, SSID, TabName, Column):
 
 def parse_response(formData, sheet_name, group_res, sheet=None):
     print("Parse response")
-    print(sheet_name, sheet)
     json_data = formData
 
     row = []
@@ -420,12 +419,9 @@ def parse_response(formData, sheet_name, group_res, sheet=None):
         json_data.get('phoneVerification', '')
     ])
 
-    print("ROW => ", row[0])
-    print("ROW TYPE =>", type(row[0]))
     # Convert all values to strings
     row = [str(value) for value in row[0]]
     Data = [row]
-    print("DATA",Data)
 
     group_data = GoogleSheetHandler(data = Data, sheet_name=sheet_name, spreadsheet_id='1S8QOS8uEw8aIS27ekyOCaHLShYL1T6d17U-frj_2YRs').appendsheet_records()
                         
@@ -504,15 +500,11 @@ def find_student_new(group_id, phone_number, check_phone_code, lang_type):
             verify_code = res["verifyCode"]
         except KeyError:
             verify_code = ""
-        print(res)
         print("VERIFY CODE", verify_code)
         data_append = [[date.strftime("%d/%m/%Y %H:%M:%S"),str(res['responseStatus']),int(phone_number),str(verify_code),str(res)]]
         print("DATA TO APPEND =>", data_append)
         code_storage = GoogleSheetHandler(data = data_append, sheet_name=config.SHEET_CODE_STORAGE,
-                                            spreadsheet_id=config.SAMPLE_SPREADSHEET_ID_FSP).appendsheet_records()
-        print("REsponse google sheet", code_storage)
-        # Append row to the sheet_data (replace with actual append logic)
-        print(sheet_data)
+                                            spreadsheet_id=config.SHEET_1088_ID).appendsheet_records()
 
     return json_eng if lang_type == "Darkon" else json_heb
 
@@ -528,7 +520,6 @@ def check_duplicate_student_id(student_id, lang_type):
 
     try:
         data = GoogleSheetHandler(sheet_name=config.CHECK_DUPLICATE_SHEET, spreadsheet_id=config.SAMPLE_SPREADSHEET_ID_FOR_DUPLICATE_STUDENT).getsheet_records()
-        print("DATA =>", data)
     except IndexError:
         print("Data not found")
         return
