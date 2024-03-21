@@ -92,11 +92,7 @@ def execute():
         
         try:
             group_res = find_group_details_sutra(formData, "1wfwhswUI573zWG6Xu7HxtpaFJ7p9MIsy9Gz0HfdTT6A", "V2", "J")
-            print("Group response =>", group_res)
-            print(type(group_res))
             group_res = group_res
-            print("Group Res =>",group_res)
-            print(group_res['status'])
             if group_res['status'] == 'failed':
                 group_res = find_group_details_sutra(formData, "1wfwhswUI573zWG6Xu7HxtpaFJ7p9MIsy9Gz0HfdTT6A", "GRUPS", "M")
                 if group_res['status'] == 'failed':
@@ -179,7 +175,7 @@ def verify_bank_details(bank, snif, account):
 
 
 def validate_phone_code(phone_number, check_phone_code, lang_type):
-    print(phone_number, check_phone_code, lang_type)
+
     # Replace with your actual implementation
     sheet_data = GoogleSheetHandler(sheet_name=config.SHEET_CODE_STORAGE, spreadsheet_id=config.SHEET_1088_ID).getsheet_records()
     json_heb = {"CheckPhoneCodeStatus": False, "message": "הקוד שהזנת אינו תואם נסה שוב"}
@@ -192,19 +188,18 @@ def validate_phone_code(phone_number, check_phone_code, lang_type):
 
         index = -1
         for i, (ph, _) in enumerate(data):
-            print(ph, i)
-            print(int(phone_number[1:]))
             if int(ph) == int(phone_number[1:]):
                 index = i
-                print("----------------- MATCHED THE CODE -------------- ")
+                print("----------------- MATCHED PHONE -------------- ")
                 break
 
 
         if index != -1:
             code = data[index][1]
-            print('CODE =>', code, check_phone_code)
             
             if int(code) == int(check_phone_code):
+                print("----------------- MATCHED OTP -------------- ")
+
                 json_heb["CheckPhoneCodeStatus"] = True
                 json_heb["message"] = "האימות עבר בהצלחה!"
 
@@ -212,6 +207,7 @@ def validate_phone_code(phone_number, check_phone_code, lang_type):
                 json_eng["message"] = "Verification passed successfully!"
 
             else:
+                print("----------------- DIDN'T MATCHED CODE -------------- ")
                 json_heb["message"] = 'הקוד שהזנת אינו תואם נסה שוב'
                 json_eng["message"] = 'The code you entered does not match Try again'
 
@@ -219,7 +215,6 @@ def validate_phone_code(phone_number, check_phone_code, lang_type):
             json_heb["message"] = 'הקוד שהזנת אינו תואם נסה שוב'
             json_eng["message"] = "The code you entered does not match. Try again"
 
-    print("Response from check phone code =>", json_heb if lang_type == "Darkon" else json_eng)
     return json_heb if lang_type == "Darkon" else json_eng
 
 
@@ -439,8 +434,8 @@ def find_student_new(group_id, phone_number, check_phone_code, lang_type):
     student_data = GoogleSheetHandler(sheet_name=config.SHEET_GRUPS, spreadsheet_id=config.SAMPLE_SPREADSHEET_ID).getsheet_records_with_range(range="GRUPS!M4:M")
 
 
-    json_heb = {"status": "failed", "groupStatus": False, "message": "הקוד הכולל שהזנת אינו תקין תשאל את האחראי !"}
-    json_eng = {"status": "failed", "groupStatus": False, "message": "The code kolell you entered is incorrect, ask the manager !"}
+    json_heb = {"status": "failed", "groupStatus": False, "message": "הקוד הכולל שהזנת אינו תקין תשאל את האחראי !", "CheckPhoneCodeStatus": False}
+    json_eng = {"status": "failed", "groupStatus": False, "message": "The code kolell you entered is incorrect, ask the manager !", "CheckPhoneCodeStatus": False}
 
     try:
         group_index1 = None
@@ -448,7 +443,7 @@ def find_student_new(group_id, phone_number, check_phone_code, lang_type):
         for i, item in enumerate(group_data):
             if item and item[0] == group_id:
                 group_index1 = i
-                print("MATCHEDDDDD +++++++++++++++++++++++++++++++++++++++ ")
+                print("MATCHEDDDDD +++++++++++++++++++++++++++++++++++++++ 1")
                 break
 
     except StopIteration:
@@ -459,7 +454,7 @@ def find_student_new(group_id, phone_number, check_phone_code, lang_type):
 
         for i, item in enumerate(student_data):
             if item and item[0] == group_id:
-                print("Group id", group_id, "Item", item[0])
+                print("MATCHEDDDDD +++++++++++++++++++++++++++++++++++++++ 2")
                 group_index2 = i
                 break
 
@@ -468,7 +463,8 @@ def find_student_new(group_id, phone_number, check_phone_code, lang_type):
     except StopIteration:
         group_index2 = -1
 
-    if group_index1 == -1 and group_index2 == -1:
+    print(group_index1, group_index2)
+    if group_index1 == None and group_index2 == None:
         print("Group Id not found in both the sources..")
         return json_eng if lang_type == "Darkon" else json_heb
 
@@ -505,12 +501,11 @@ def find_student_new(group_id, phone_number, check_phone_code, lang_type):
         print("DATA TO APPEND =>", data_append)
         code_storage = GoogleSheetHandler(data = data_append, sheet_name=config.SHEET_CODE_STORAGE,
                                             spreadsheet_id=config.SHEET_1088_ID).appendsheet_records()
-
+        print("Code Storage =>", code_storage)
     return json_eng if lang_type == "Darkon" else json_heb
 
 
 def check_duplicate_student_id(student_id, lang_type):
-    print("from check duplicate student id", student_id, lang_type)
     # Replace with your actual implementation
     if student_id is None:
         student_id = "324150838"
